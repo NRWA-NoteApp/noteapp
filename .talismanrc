@@ -1,0 +1,6 @@
+fileignoreconfig:
+- filename: README.md
+  checksum: 39904857d8740ab8c982d1055de7f8b087147fca69e96f694742f6c54f1399ea
+- filename: database/schema.sql
+  checksum: f5f4a68b38639ff6a6ccd44b0646324a9b5150a7ec3132f8ba537d9fdc062bad
+version: "1.0"

@@ -1,0 +1,26 @@
+# OS-specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and databases
+*.log
+*.sqlite
+
+# IDEs and Editors
+.vscode/
+.idea/
+.cursor/
+*.swp
+*.swo
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+
+# Dependency directories (generic)
+node_modules/
+bin/
+obj/
+dist/
