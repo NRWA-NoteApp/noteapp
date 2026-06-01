@@ -4,6 +4,17 @@ Sve značajne promjene u ovom projektu dokumentirane su u ovoj datoteci.
 
 Format temeljen na [Keep a Changelog](https://keepachangelog.com/hr/1.0.0/).
 
+## [0.2.0] - 2026-05-30
+
+### Dodano
+
+- MVC struktura s mapama `controllers`, `models`, `views`, `config` i `public`
+- `Router` klasa za mapiranje web putanja na metode kontrolera
+- `NoteModel` i `CategoryModel` za rad s bilješkama i kategorijama
+- `NoteController` s prikazom liste, detalja, unosa i uređivanja bilješki
+- HTML predlošci i osnovni stilovi za prikaz bilješki
+- Testni podaci u `database/seed.sql`
+
 ## [0.1.0] - 2026-05-21
 
 ### Dodano
