@@ -14,6 +14,16 @@ class Router
         $this->addRoute('POST', $path, $handler);
     }
 
+    public function put(string $path, array $handler): void
+    {
+        $this->addRoute('PUT', $path, $handler);
+    }
+
+    public function delete(string $path, array $handler): void
+    {
+        $this->addRoute('DELETE', $path, $handler);
+    }
+
     private function addRoute(string $method, string $path, array $handler): void
     {
         $this->routes[] = [
@@ -38,6 +48,15 @@ class Router
         }
 
         http_response_code(404);
+
+        if (str_starts_with($path, '/api/')) {
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'error' => 'Traženi API resurs ne postoji.',
+            ], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
         require_once __DIR__ . '/views/404.php';
     }
 

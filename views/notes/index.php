@@ -16,32 +16,34 @@
             <a class="button" href="/notes/create">Nova bilješka</a>
         </header>
 
-        <?php if (empty($notes)): ?>
-            <section class="empty-state">
-                <h2>Nema bilješki za prikaz.</h2>
-                <p>Uvezi testne podatke iz baze ili dodaj prvu bilješku kroz obrazac.</p>
-            </section>
-        <?php else: ?>
-            <section class="note-grid" aria-label="Popis bilješki">
-                <?php foreach ($notes as $note): ?>
-                    <article class="note-card">
-                        <div class="note-meta">
-                            <?php if (!empty($note['kategorija_naziv'])): ?>
-                                <span class="category" style="--category-color: <?= $note['kategorija_boja'] ?>;">
-                                    <?= $note['kategorija_naziv'] ?>
-                                </span>
-                            <?php else: ?>
-                                <span class="category muted">Bez kategorije</span>
-                            <?php endif; ?>
-                            <span><?= $note['korisnik_ime'] ?></span>
-                        </div>
-                        <h2><?= $note['naslov'] ?></h2>
-                        <p><?= strlen($note['sadrzaj']) > 140 ? substr($note['sadrzaj'], 0, 140) . '...' : $note['sadrzaj'] ?></p>
-                        <a href="/notes/<?= $note['id'] ?>">Otvori detalje</a>
-                    </article>
-                <?php endforeach; ?>
-            </section>
-        <?php endif; ?>
+        <p class="api-status" data-notes-status>Učitavanje bilješki preko API-ja...</p>
+
+        <section class="empty-state" data-notes-empty <?= empty($notes) ? '' : 'hidden' ?>>
+            <h2>Nema bilješki za prikaz.</h2>
+            <p>Uvezi testne podatke iz baze ili dodaj prvu bilješku kroz obrazac.</p>
+        </section>
+
+        <section class="note-grid" data-notes-list aria-label="Popis bilješki" <?= empty($notes) ? 'hidden' : '' ?>>
+            <?php foreach ($notes as $note): ?>
+                <article class="note-card">
+                    <div class="note-meta">
+                        <?php if (!empty($note['kategorija_naziv'])): ?>
+                            <span class="category" style="--category-color: <?= $note['kategorija_boja'] ?>;">
+                                <?= $note['kategorija_naziv'] ?>
+                            </span>
+                        <?php else: ?>
+                            <span class="category muted">Bez kategorije</span>
+                        <?php endif; ?>
+                        <span><?= $note['korisnik_ime'] ?></span>
+                    </div>
+                    <h2><?= $note['naslov'] ?></h2>
+                    <p><?= strlen($note['sadrzaj']) > 140 ? substr($note['sadrzaj'], 0, 140) . '...' : $note['sadrzaj'] ?></p>
+                    <a href="/notes/<?= $note['id'] ?>">Otvori detalje</a>
+                </article>
+            <?php endforeach; ?>
+        </section>
     </main>
+
+    <script src="/notes.js" defer></script>
 </body>
 </html>
