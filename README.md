@@ -9,6 +9,7 @@ Svaki registrirani korisnik ima privatni prostor s bilješkama vidljivim samo nj
 ## Tehnologije
 
 - **Backend:** PHP bez okvira
+- **Frontend:** HTML, CSS i Fetch API
 - **Baza podataka:** MySQL
 - **Razvojno okruženje:** Laragon (Apache + MySQL)
 
@@ -58,6 +59,31 @@ Zadane postavke baze su `127.0.0.1`, baza `noteapp`, korisnik `root` i prazna lo
 | `/notes/create`    | Obrazac za novu bilješku       |
 | `/notes/{id}/edit` | Obrazac za uređivanje bilješke |
 
+Lista bilješki se nakon učitavanja stranice dinamično osvježava preko Fetch API poziva na `/api/notes`, bez ponovnog učitavanja cijele stranice.
+
+## API rute
+
+API vraća JSON odgovore i koristi HTTP statusne kodove `200`, `201`, `400`, `404` i `500`.
+
+| Metoda   | Ruta              | Opis                  |
+| -------- | ----------------- | --------------------- |
+| `GET`    | `/api/notes`      | Dohvat svih bilješki  |
+| `GET`    | `/api/notes/{id}` | Dohvat jedne bilješke |
+| `POST`   | `/api/notes`      | Kreiranje bilješke    |
+| `PUT`    | `/api/notes/{id}` | Ažuriranje bilješke   |
+| `DELETE` | `/api/notes/{id}` | Brisanje bilješke     |
+| `GET`    | `/api/categories` | Dohvat kategorija     |
+
+Primjer tijela zahtjeva za `POST /api/notes` i `PUT /api/notes/{id}`:
+
+```json
+{
+  "naslov": "Nova bilješka",
+  "sadrzaj": "Sadržaj bilješke",
+  "kategorija_id": 1
+}
+```
+
 ## Arhitekturalne odluke
 
 Dokumentirane u mapi `docs/adr/`:
@@ -71,6 +97,8 @@ nrwa-noteapp/
 ├── config/
 │   └── database.php
 ├── controllers/
+│   ├── ApiCategoryController.php
+│   ├── ApiNoteController.php
 │   └── NoteController.php
 ├── database/
 │   ├── schema.sql
@@ -86,6 +114,7 @@ nrwa-noteapp/
 ├── public/
 │   ├── .htaccess
 │   ├── index.php
+│   ├── notes.js
 │   └── style.css
 ├── views/
 │   ├── notes/
