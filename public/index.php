@@ -1,27 +1,40 @@
 <?php
 
 require_once __DIR__ . '/../Router.php';
+require_once __DIR__ . '/../services/JwtService.php';
 require_once __DIR__ . '/../models/NoteModel.php';
 require_once __DIR__ . '/../models/CategoryModel.php';
+require_once __DIR__ . '/../models/UserModel.php';
+require_once __DIR__ . '/../middleware/AuthMiddleware.php';
 require_once __DIR__ . '/../controllers/NoteController.php';
 require_once __DIR__ . '/../controllers/ApiNoteController.php';
 require_once __DIR__ . '/../controllers/ApiCategoryController.php';
+require_once __DIR__ . '/../controllers/ApiAuthController.php';
+require_once __DIR__ . '/../controllers/AdminController.php';
 
 try {
     $connection = require_once __DIR__ . '/../config/database.php';
+    $jwtConfig = require_once __DIR__ . '/../config/jwt.php';
+    $authMiddleware = new AuthMiddleware($connection, $jwtConfig);
 
     $noteController = new NoteController($connection);
-    $apiNoteController = new ApiNoteController($connection);
+    $apiNoteController = new ApiNoteController($connection, $authMiddleware);
     $apiCategoryController = new ApiCategoryController($connection);
+    $apiAuthController = new ApiAuthController($connection, $jwtConfig);
+    $adminController = new AdminController($connection, $authMiddleware);
     $router = new Router();
     $apiNoteRoute = '/api/notes/{id}';
 
+    $router->post('/api/auth/register', [$apiAuthController, 'register']);
+    $router->post('/api/auth/login', [$apiAuthController, 'login']);
     $router->get('/api/notes', [$apiNoteController, 'index']);
     $router->get($apiNoteRoute, [$apiNoteController, 'show']);
     $router->post('/api/notes', [$apiNoteController, 'store']);
     $router->put($apiNoteRoute, [$apiNoteController, 'update']);
     $router->delete($apiNoteRoute, [$apiNoteController, 'destroy']);
     $router->get('/api/categories', [$apiCategoryController, 'index']);
+    $router->get('/api/admin/users', [$adminController, 'users']);
+    $router->get('/api/admin/notes', [$adminController, 'notes']);
 
     $router->get('/', [$noteController, 'index']);
     $router->get('/notes', [$noteController, 'index']);
