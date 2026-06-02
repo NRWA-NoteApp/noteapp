@@ -4,6 +4,15 @@ Sve značajne promjene u ovom projektu dokumentirane su u ovoj datoteci.
 
 Format temeljen na [Keep a Changelog](https://keepachangelog.com/hr/1.0.0/).
 
+## [0.3.0] - 2026-05-30
+
+### Dodano
+
+- REST API rute za bilješke i kategorije s JSON odgovorima
+- Kreiranje, dohvat, ažuriranje i brisanje bilješki preko `/api/notes`
+- Fetch API učitavanje liste bilješki bez osvježavanja stranice
+- API dokumentacija u `README.md`
+
 ## [0.2.0] - 2026-05-30
 
 ### Dodano
