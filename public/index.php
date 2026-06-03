@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../Router.php';
+require_once __DIR__ . '/../services/Security.php';
 require_once __DIR__ . '/../services/JwtService.php';
 require_once __DIR__ . '/../models/NoteModel.php';
 require_once __DIR__ . '/../models/CategoryModel.php';
@@ -11,6 +12,9 @@ require_once __DIR__ . '/../controllers/ApiNoteController.php';
 require_once __DIR__ . '/../controllers/ApiCategoryController.php';
 require_once __DIR__ . '/../controllers/ApiAuthController.php';
 require_once __DIR__ . '/../controllers/AdminController.php';
+
+header("Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'");
+header('X-Content-Type-Options: nosniff');
 
 try {
     $connection = require_once __DIR__ . '/../config/database.php';

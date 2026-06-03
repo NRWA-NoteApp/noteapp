@@ -17,8 +17,12 @@ class ApiAuthController
 
         if (!$this->hasRegistrationBody($data)) {
             $this->json([
-                'error' => 'Pošaljite ime, email i lozinku.',
+                'error' => 'Pošaljite ime, email, lozinku i CSRF token.',
             ], 400);
+            return;
+        }
+
+        if (!$this->hasValidCsrfToken($data)) {
             return;
         }
 
@@ -54,8 +58,12 @@ class ApiAuthController
 
         if (!$this->hasLoginBody($data)) {
             $this->json([
-                'error' => 'Pošaljite email i lozinku.',
+                'error' => 'Pošaljite email, lozinku i CSRF token.',
             ], 400);
+            return;
+        }
+
+        if (!$this->hasValidCsrfToken($data)) {
             return;
         }
 
@@ -118,6 +126,20 @@ class ApiAuthController
             && is_scalar($data['lozinka'])
             && filter_var(trim((string) $data['email']), FILTER_VALIDATE_EMAIL) !== false
             && trim((string) $data['lozinka']) !== '';
+    }
+
+    private function hasValidCsrfToken(?array $data): bool
+    {
+        $token = $data['csrf_token'] ?? null;
+
+        if (!is_scalar($token) || !Security::validateCsrfToken((string) $token)) {
+            $this->json([
+                'error' => 'CSRF token nije valjan.',
+            ], 403);
+            return false;
+        }
+
+        return true;
     }
 
     private function json(array $payload, int $status = 200): void
