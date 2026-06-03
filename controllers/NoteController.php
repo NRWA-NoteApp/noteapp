@@ -6,11 +6,13 @@ class NoteController
 
     private NoteModel $notes;
     private CategoryModel $categories;
+    private AuthMiddleware $auth;
 
-    public function __construct(PDO $connection)
+    public function __construct(PDO $connection, AuthMiddleware $auth)
     {
         $this->notes = new NoteModel($connection);
         $this->categories = new CategoryModel($connection);
+        $this->auth = $auth;
     }
 
     public function index(): void
@@ -23,7 +25,13 @@ class NoteController
 
     public function show(array $params): void
     {
-        $note = $this->notes->findById((int) $params['id']);
+        $user = $this->requireWebUser();
+
+        if ($user === null) {
+            return;
+        }
+
+        $note = $this->notes->findByIdForUser((int) $params['id'], (int) $user['id']);
 
         if ($note === null) {
             http_response_code(404);
@@ -38,23 +46,29 @@ class NoteController
 
     public function create(): void
     {
-        $defaultUserId = 1;
+        $user = $this->requireWebUser();
+
+        if ($user === null) {
+            return;
+        }
+
+        $userId = (int) $user['id'];
         $note = [
             'naslov' => '',
             'sadrzaj' => '',
-            'korisnik_id' => $defaultUserId,
+            'korisnik_id' => $userId,
             'kategorija_id' => '',
         ];
         $errors = [];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $note = $this->noteFromPost($defaultUserId);
+            $note = $this->noteFromPost($userId);
 
             if (!Security::validateCsrfToken($_POST['csrf_token'] ?? null)) {
                 $errors[] = 'Sigurnosni token obrasca nije valjan. Pokušajte ponovno.';
             }
 
-            $validation = $this->validateNoteInput($note, $defaultUserId);
+            $validation = $this->validateNoteInput($note, $userId);
             $errors = array_merge($errors, $validation['errors']);
 
             if ($errors === []) {
@@ -68,7 +82,7 @@ class NoteController
         $this->render(self::FORM_TEMPLATE, [
             'action' => '/notes',
             'buttonText' => 'Spremi bilješku',
-            'categories' => $this->categories->findByUser($defaultUserId),
+            'categories' => $this->categories->findByUser($userId),
             'csrfToken' => Security::csrfToken(),
             'errors' => $errors,
             'note' => $note,
@@ -77,7 +91,15 @@ class NoteController
 
     public function edit(array $params): void
     {
-        $note = $this->notes->findById((int) $params['id']);
+        $user = $this->requireWebUser();
+
+        if ($user === null) {
+            return;
+        }
+
+        $noteId = (int) $params['id'];
+        $userId = (int) $user['id'];
+        $note = $this->notes->findByIdForUser($noteId, $userId);
 
         if ($note === null) {
             http_response_code(404);
@@ -86,38 +108,38 @@ class NoteController
         }
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $submittedNote = $this->noteFromPost((int) $note['korisnik_id']);
+            $submittedNote = $this->noteFromPost($userId);
             $errors = [];
 
             if (!Security::validateCsrfToken($_POST['csrf_token'] ?? null)) {
                 $errors[] = 'Sigurnosni token obrasca nije valjan. Pokušajte ponovno.';
             }
 
-            $validation = $this->validateNoteInput($submittedNote, (int) $note['korisnik_id']);
+            $validation = $this->validateNoteInput($submittedNote, $userId);
             $errors = array_merge($errors, $validation['errors']);
 
             if ($errors !== []) {
                 $this->render(self::FORM_TEMPLATE, [
                     'action' => "/notes/{$params['id']}",
                     'buttonText' => 'Ažuriraj bilješku',
-                    'categories' => $this->categories->findByUser((int) $note['korisnik_id']),
+                    'categories' => $this->categories->findByUser($userId),
                     'csrfToken' => Security::csrfToken(),
                     'errors' => $errors,
                     'note' => $submittedNote,
                 ]);
-                return;
+            } else {
+                $this->notes->updateForUser($noteId, $userId, $validation['data']);
+
+                header("Location: /notes/{$params['id']}");
             }
 
-            $this->notes->update((int) $params['id'], $validation['data']);
-
-            header("Location: /notes/{$params['id']}");
             return;
         }
 
         $this->render(self::FORM_TEMPLATE, [
             'action' => "/notes/{$params['id']}",
             'buttonText' => 'Ažuriraj bilješku',
-            'categories' => $this->categories->findByUser((int) $note['korisnik_id']),
+            'categories' => $this->categories->findByUser($userId),
             'csrfToken' => Security::csrfToken(),
             'errors' => [],
             'note' => $note,
@@ -179,6 +201,23 @@ class NoteController
         }
 
         return (int) $kategorijaId;
+    }
+
+    private function requireWebUser(): ?array
+    {
+        $user = $this->auth->currentUser();
+
+        if ($user !== null) {
+            return $user;
+        }
+
+        http_response_code(401);
+        $this->render('error', [
+            'title' => 'Prijava je obavezna.',
+            'message' => 'Za pristup privatnim bilješkama najprije se prijavite na početnoj stranici.',
+        ]);
+
+        return null;
     }
 
     private function textLength(string $value): int

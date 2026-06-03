@@ -13,7 +13,8 @@ class AuthMiddleware
 
     public function requireUser(): ?array
     {
-        $token = $this->getBearerToken();
+        $token = $this->getRequestToken();
+        $user = $this->authenticateToken($token);
 
         if ($token === null) {
             $this->json([
@@ -22,26 +23,39 @@ class AuthMiddleware
             return null;
         }
 
-        $payload = $this->jwt->decode($token);
-
-        if (
-            $payload === null
-            || !isset($payload['user_id'], $payload['uloga'])
-            || !ctype_digit((string) $payload['user_id'])
-        ) {
+        if ($user === null) {
             $this->json([
                 'error' => 'JWT token nije valjan ili je istekao.',
             ], 401);
             return null;
         }
 
-        $user = $this->users->findById((int) $payload['user_id']);
+        return $user;
+    }
 
-        if ($user === null || $user['uloga'] !== $payload['uloga']) {
-            $this->json([
-                'error' => 'Korisnik iz tokena više ne postoji ili nema istu ulogu.',
-            ], 401);
-            return null;
+    public function currentUser(): ?array
+    {
+        return $this->authenticateToken($this->getRequestToken());
+    }
+
+    private function authenticateToken(?string $token): ?array
+    {
+        $user = null;
+
+        if ($token !== null) {
+            $payload = $this->jwt->decode($token);
+
+            if (
+                $payload !== null
+                && isset($payload['user_id'], $payload['uloga'])
+                && ctype_digit((string) $payload['user_id'])
+            ) {
+                $foundUser = $this->users->findById((int) $payload['user_id']);
+
+                if ($foundUser !== null && $foundUser['uloga'] === $payload['uloga']) {
+                    $user = $foundUser;
+                }
+            }
         }
 
         return $user;
@@ -65,6 +79,11 @@ class AuthMiddleware
         return $user;
     }
 
+    private function getRequestToken(): ?string
+    {
+        return $this->getBearerToken() ?? $this->getCookieToken();
+    }
+
     private function getBearerToken(): ?string
     {
         $header = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
@@ -79,6 +98,13 @@ class AuthMiddleware
         }
 
         return trim($matches[1]);
+    }
+
+    private function getCookieToken(): ?string
+    {
+        $token = $_COOKIE['noteapp_jwt_token'] ?? null;
+
+        return is_string($token) && $token !== '' ? $token : null;
     }
 
     private function json(array $payload, int $status): void

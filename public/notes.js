@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         authStatus: document.querySelector('[data-auth-status]'),
         authMessage: document.querySelector('[data-auth-message]'),
         logoutButton: document.querySelector('[data-logout]'),
+        createNoteLink: document.querySelector('[data-create-note-link]'),
         adminPanel: document.querySelector('[data-admin-panel]'),
         adminUsers: document.querySelector('[data-admin-users]'),
         adminNotes: document.querySelector('[data-admin-notes]'),
@@ -78,6 +79,7 @@ function refreshAuthenticatedView(elements) {
         return;
     }
 
+    syncAuthCookie(token);
     showLoggedInState(elements, user);
     loadNotes(elements, token);
 
@@ -89,6 +91,7 @@ function refreshAuthenticatedView(elements) {
 function showLoggedOutState(elements) {
     elements.authGrid.hidden = false;
     elements.authStatus.hidden = true;
+    elements.createNoteLink.hidden = true;
     elements.adminPanel.hidden = true;
     elements.notesList.innerHTML = '';
     elements.notesList.hidden = true;
@@ -101,6 +104,7 @@ function showLoggedInState(elements, user) {
     elements.authGrid.hidden = true;
     elements.authStatus.hidden = false;
     elements.authMessage.textContent = `Prijavljeni ste kao ${user.ime} (${user.uloga}).`;
+    elements.createNoteLink.hidden = false;
     elements.adminPanel.hidden = user.uloga !== 'admin';
     elements.status.textContent = 'Učitavanje vaših bilješki...';
 }
@@ -247,11 +251,17 @@ function normalizeColor(value) {
 function saveAuth(token, user) {
     localStorage.setItem(TOKEN_KEY, token);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
+    syncAuthCookie(token);
 }
 
 function clearAuth() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    document.cookie = `${TOKEN_KEY}=; Path=/; Max-Age=0; SameSite=Lax`;
+}
+
+function syncAuthCookie(token) {
+    document.cookie = `${TOKEN_KEY}=${encodeURIComponent(token)}; Path=/; SameSite=Lax`;
 }
 
 function readStoredUser() {

@@ -13,7 +13,7 @@
                 <p class="eyebrow">NoteApp</p>
                 <h1>Bilješke</h1>
             </div>
-            <a class="button" href="/notes/create">Nova bilješka</a>
+            <a class="button" href="/notes/create" data-create-note-link hidden>Nova bilješka</a>
         </header>
 
         <section class="auth-grid" aria-label="Autentikacija">
@@ -22,10 +22,10 @@
                 <input type="hidden" name="csrf_token" value="<?= Security::escape($csrfToken) ?>">
 
                 <label for="login-email">Email</label>
-                <input id="login-email" name="email" type="email" value="ana.horvat@example.com" required>
+                <input id="login-email" name="email" type="email" required>
 
                 <label for="login-password">Lozinka</label>
-                <input id="login-password" name="lozinka" type="password" value="password" required>
+                <input id="login-password" name="lozinka" type="password" required>
 
                 <button class="button" type="submit">Prijavi se</button>
             </form>

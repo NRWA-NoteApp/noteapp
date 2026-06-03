@@ -13,12 +13,14 @@ fileignoreconfig:
   checksum: f5f4a68b38639ff6a6ccd44b0646324a9b5150a7ec3132f8ba537d9fdc062bad
 - filename: database/seed.sql
   checksum: 5d1ec59cf8ddea1a9e1b9cd72a9ffe7777d003a6d8452f3f4e28dafc1bfc9fa4
+- filename: docker-compose.yml
+  checksum: 8c968d04e4367194be906c9197855e0c6a4cb45253af21436cc90af7cb65d7d6
 - filename: docs/adr/ADR-002.md
   checksum: f13f9e7b733f2f96eb481971f6cfc759241348693312142b99c94cd5ed3185ea
 - filename: models/UserModel.php
   checksum: 2bdbd95b619bb35433d321b621878b2925f495be221d756ffd8a51789915b567
 - filename: public/notes.js
-  checksum: 7020220acc75bebe04b0b12b3171cac8635a3b96ff24425a2b50e40b3cb30380
+  checksum: c972a5d39a21533690dcac55f9704c8827eb60841aa67b05f005208b46c05da1
 - filename: services/JwtService.php
   checksum: b03eca130e0567a9b43effb24a29ba0d81b662c49d2e51c80291a65408e60119
 - filename: views/notes/index.php

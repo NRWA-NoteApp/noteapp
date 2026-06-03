@@ -51,6 +51,23 @@ Nakon pokretanja aplikacija je dostupna na `http://127.0.0.1:8000`. U Laragon ok
 
 Zadane postavke baze su `127.0.0.1`, baza `noteapp`, korisnik `root` i prazna lozinka. Mogu se promijeniti varijablama okruženja `DB_HOST`, `DB_DATABASE`, `DB_USERNAME` i `DB_PASSWORD`.
 
+## Pokretanje kroz Docker
+
+Ako ne koristite Laragon, aplikaciju možete pokrenuti kroz Docker Compose:
+
+```bash
+docker compose up
+```
+
+Docker Compose pokreće PHP/Apache aplikaciju na `http://127.0.0.1:8000` i MySQL bazu na lokalnom portu `3307`. Pri prvom pokretanju MySQL kontejner automatski učitava `database/schema.sql` i `database/seed.sql`.
+
+Za ponovno stvaranje baze od početka pokrenite:
+
+```bash
+docker compose down -v
+docker compose up
+```
+
 JWT tajni ključ može se promijeniti varijablom okruženja `JWT_SECRET`. Token traje 24 sata i u payloadu sadrži `user_id` i `uloga`.
 
 HTML obrasci koriste CSRF token iz sesije. Korisnički podaci koji se prikazuju u HTML-u escapaju se pomoću `htmlspecialchars`, a SQL upiti izvršavaju se kroz PDO prepared statements.
@@ -61,11 +78,11 @@ HTML obrasci koriste CSRF token iz sesije. Korisnički podaci koji se prikazuju 
 | ------------------ | ----------------------------------------- |
 | `/`                | Početna stranica s prijavom i bilješkama  |
 | `/notes`           | Početna stranica s prijavom i bilješkama  |
-| `/notes/{id}`      | Detalji jedne bilješke                    |
-| `/notes/create`    | Obrazac za novu bilješku                  |
-| `/notes/{id}/edit` | Obrazac za uređivanje bilješke            |
+| `/notes/{id}`      | Detalji vlastite bilješke                 |
+| `/notes/create`    | Obrazac za novu bilješku prijavljenog korisnika |
+| `/notes/{id}/edit` | Obrazac za uređivanje vlastite bilješke   |
 
-Lista bilješki se nakon prijave dinamično učitava preko Fetch API poziva na `/api/notes`, bez ponovnog učitavanja cijele stranice. JWT token se sprema u `localStorage` i šalje kroz `Authorization: Bearer <token>` zaglavlje.
+Lista bilješki se nakon prijave dinamično učitava preko Fetch API poziva na `/api/notes`, bez ponovnog učitavanja cijele stranice. JWT token se sprema u `localStorage`, šalje kroz `Authorization: Bearer <token>` zaglavlje i sinkronizira u cookie kako bi server mogao zaštititi privatne web rute.
 
 ## API rute
 
@@ -440,6 +457,7 @@ nrwa-noteapp/
 ├── database/
 │   ├── schema.sql
 │   └── seed.sql
+├── docker-compose.yml
 ├── docs/
 │   ├── adr/
 │   │   ├── ADR-001.md
