@@ -5,22 +5,38 @@ class ApiNoteController
     private const NOTE_NOT_FOUND_MESSAGE = 'Bilješka nije pronađena.';
 
     private NoteModel $notes;
+    private CategoryModel $categories;
+    private AuthMiddleware $auth;
 
-    public function __construct(PDO $connection)
+    public function __construct(PDO $connection, AuthMiddleware $auth)
     {
         $this->notes = new NoteModel($connection);
+        $this->categories = new CategoryModel($connection);
+        $this->auth = $auth;
     }
 
     public function index(): void
     {
+        $user = $this->auth->requireUser();
+
+        if ($user === null) {
+            return;
+        }
+
         $this->json([
-            'data' => $this->notes->findAll(),
+            'data' => $this->notes->findByUser((int) $user['id']),
         ]);
     }
 
     public function show(array $params): void
     {
-        $note = $this->notes->findById((int) $params['id']);
+        $user = $this->auth->requireUser();
+
+        if ($user === null) {
+            return;
+        }
+
+        $note = $this->notes->findByIdForUser((int) $params['id'], (int) $user['id']);
 
         if ($note === null) {
             $this->json([
@@ -36,11 +52,24 @@ class ApiNoteController
 
     public function store(): void
     {
+        $user = $this->auth->requireUser();
+
+        if ($user === null) {
+            return;
+        }
+
         $data = $this->buildNoteData($this->readJsonBody());
 
         if ($data === null) {
             $this->json([
                 'error' => 'Pošaljite ispravan JSON s poljima naslov, sadrzaj i kategorija_id.',
+            ], 400);
+            return;
+        }
+
+        if (!$this->categoryBelongsToUser($data['kategorija_id'], (int) $user['id'])) {
+            $this->json([
+                'error' => 'Odabrana kategorija ne pripada prijavljenom korisniku.',
             ], 400);
             return;
         }
@@ -48,20 +77,26 @@ class ApiNoteController
         $noteId = $this->notes->create([
             'naslov' => $data['naslov'],
             'sadrzaj' => $data['sadrzaj'],
-            'korisnik_id' => 1,
+            'korisnik_id' => (int) $user['id'],
             'kategorija_id' => $data['kategorija_id'] ?? null,
         ]);
 
         $this->json([
-            'data' => $this->notes->findById($noteId),
+            'data' => $this->notes->findByIdForUser($noteId, (int) $user['id']),
         ], 201);
     }
 
     public function update(array $params): void
     {
+        $user = $this->auth->requireUser();
+
+        if ($user === null) {
+            return;
+        }
+
         $noteId = (int) $params['id'];
 
-        if ($this->notes->findById($noteId) === null) {
+        if ($this->notes->findByIdForUser($noteId, (int) $user['id']) === null) {
             $this->json([
                 'error' => self::NOTE_NOT_FOUND_MESSAGE,
             ], 404);
@@ -77,29 +112,42 @@ class ApiNoteController
             return;
         }
 
-        $this->notes->update($noteId, [
+        if (!$this->categoryBelongsToUser($data['kategorija_id'], (int) $user['id'])) {
+            $this->json([
+                'error' => 'Odabrana kategorija ne pripada prijavljenom korisniku.',
+            ], 400);
+            return;
+        }
+
+        $this->notes->updateForUser($noteId, (int) $user['id'], [
             'naslov' => $data['naslov'],
             'sadrzaj' => $data['sadrzaj'],
             'kategorija_id' => $data['kategorija_id'] ?? null,
         ]);
 
         $this->json([
-            'data' => $this->notes->findById($noteId),
+            'data' => $this->notes->findByIdForUser($noteId, (int) $user['id']),
         ]);
     }
 
     public function destroy(array $params): void
     {
+        $user = $this->auth->requireUser();
+
+        if ($user === null) {
+            return;
+        }
+
         $noteId = (int) $params['id'];
 
-        if ($this->notes->findById($noteId) === null) {
+        if ($this->notes->findByIdForUser($noteId, (int) $user['id']) === null) {
             $this->json([
                 'error' => self::NOTE_NOT_FOUND_MESSAGE,
             ], 404);
             return;
         }
 
-        $this->notes->delete($noteId);
+        $this->notes->deleteForUser($noteId, (int) $user['id']);
 
         $this->json([
             'message' => 'Bilješka je obrisana.',
@@ -155,6 +203,11 @@ class ApiNoteController
         }
 
         return (int) $kategorijaId;
+    }
+
+    private function categoryBelongsToUser(?int $categoryId, int $userId): bool
+    {
+        return $categoryId === null || $this->categories->existsForUser($categoryId, $userId);
     }
 
     private function json(array $payload, int $status = 200): void
