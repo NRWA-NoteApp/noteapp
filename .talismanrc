@@ -5,8 +5,18 @@ fileignoreconfig:
   checksum: 6da9523b7c148d81adef26b717907c252dd4d7f51d9737fa4ce198c28d0e2c63
 - filename: config/database.php
   checksum: 555406c367928db7cb91a602189992fc409eba73283912d063fe6ec603ed2b0b
+- filename: config/jwt.php
+  checksum: c34a1dcfc22d15a4551b47eb202c79afe8a4750d181371f1431517028e9a52fe
+- filename: controllers/ApiAuthController.php
+  checksum: 657ec6732544f01aeb60aa4c3d25616ae0f870051602fbbae2b07b1b1dce9ec2
 - filename: database/schema.sql
   checksum: f5f4a68b38639ff6a6ccd44b0646324a9b5150a7ec3132f8ba537d9fdc062bad
 - filename: database/seed.sql
   checksum: 5d1ec59cf8ddea1a9e1b9cd72a9ffe7777d003a6d8452f3f4e28dafc1bfc9fa4
+- filename: public/notes.js
+  checksum: 7020220acc75bebe04b0b12b3171cac8635a3b96ff24425a2b50e40b3cb30380
+- filename: services/JwtService.php
+  checksum: b03eca130e0567a9b43effb24a29ba0d81b662c49d2e51c80291a65408e60119
+- filename: views/notes/index.php
+  checksum: bdb5f7781c7a3ca1869eb116ffc723b9971e55d8242331608b9299b2517e0a75
 version: "1.0"

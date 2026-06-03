@@ -4,6 +4,17 @@ Sve značajne promjene u ovom projektu dokumentirane su u ovoj datoteci.
 
 Format temeljen na [Keep a Changelog](https://keepachangelog.com/hr/1.0.0/).
 
+## [0.4.0] - 2026-05-30
+
+### Dodano
+
+- Registracija i prijava preko `/api/auth/register` i `/api/auth/login`
+- JWT tokeni s trajanjem od 24 sata i payloadom za `user_id` i `uloga`
+- `AuthMiddleware` za provjeru Bearer tokena u API zahtjevima
+- Zaštita `/api/notes` ruta i filtriranje bilješki po prijavljenom korisniku
+- Osnovne admin API rute za pregled korisnika i bilješki
+- Login i register obrasci s pohranom tokena u `localStorage`
+
 ## [0.3.0] - 2026-05-30
 
 ### Dodano

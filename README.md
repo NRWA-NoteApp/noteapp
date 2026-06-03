@@ -11,6 +11,7 @@ Svaki registrirani korisnik ima privatni prostor s bilješkama vidljivim samo nj
 - **Backend:** PHP bez okvira
 - **Frontend:** HTML, CSS i Fetch API
 - **Baza podataka:** MySQL
+- **Autentikacija:** JWT s bcrypt hashiranjem lozinki
 - **Razvojno okruženje:** Laragon (Apache + MySQL)
 
 ## Struktura baze podataka
@@ -49,30 +50,59 @@ Nakon pokretanja aplikacija je dostupna na `http://127.0.0.1:8000`. U Laragonu j
 
 Zadane postavke baze su `127.0.0.1`, baza `noteapp`, korisnik `root` i prazna lozinka. Mogu se promijeniti varijablama okruženja `DB_HOST`, `DB_DATABASE`, `DB_USERNAME` i `DB_PASSWORD`.
 
+JWT tajni ključ može se promijeniti varijablom okruženja `JWT_SECRET`. Token traje 24 sata i u payloadu sadrži `user_id` i `uloga`.
+
 ## Web rute
 
-| Ruta               | Opis                           |
-| ------------------ | ------------------------------ |
-| `/`                | Lista svih bilješki            |
-| `/notes`           | Lista svih bilješki            |
+| Ruta               | Opis                                      |
+| ------------------ | ----------------------------------------- |
+| `/`                | Početna stranica s prijavom i bilješkama  |
+| `/notes`           | Početna stranica s prijavom i bilješkama  |
 | `/notes/{id}`      | Detalji jedne bilješke         |
 | `/notes/create`    | Obrazac za novu bilješku       |
 | `/notes/{id}/edit` | Obrazac za uređivanje bilješke |
 
-Lista bilješki se nakon učitavanja stranice dinamično osvježava preko Fetch API poziva na `/api/notes`, bez ponovnog učitavanja cijele stranice.
+Lista bilješki se nakon prijave dinamično učitava preko Fetch API poziva na `/api/notes`, bez ponovnog učitavanja cijele stranice. JWT token se sprema u `localStorage` i šalje kroz `Authorization: Bearer <token>` zaglavlje.
 
 ## API rute
 
-API vraća JSON odgovore i koristi HTTP statusne kodove `200`, `201`, `400`, `404` i `500`.
+API vraća JSON odgovore i koristi HTTP statusne kodove `200`, `201`, `400`, `401`, `403`, `404` i `500`.
 
-| Metoda   | Ruta              | Opis                  |
-| -------- | ----------------- | --------------------- |
-| `GET`    | `/api/notes`      | Dohvat svih bilješki  |
-| `GET`    | `/api/notes/{id}` | Dohvat jedne bilješke |
-| `POST`   | `/api/notes`      | Kreiranje bilješke    |
-| `PUT`    | `/api/notes/{id}` | Ažuriranje bilješke   |
-| `DELETE` | `/api/notes/{id}` | Brisanje bilješke     |
-| `GET`    | `/api/categories` | Dohvat kategorija     |
+| Metoda   | Ruta                 | Opis                                      |
+| -------- | -------------------- | ----------------------------------------- |
+| `POST`   | `/api/auth/register` | Registracija korisnika i izdavanje tokena |
+| `POST`   | `/api/auth/login`    | Prijava korisnika i izdavanje tokena      |
+| `GET`    | `/api/notes`         | Dohvat bilješki prijavljenog korisnika    |
+| `GET`    | `/api/notes/{id}`    | Dohvat jedne vlastite bilješke            |
+| `POST`   | `/api/notes`         | Kreiranje bilješke prijavljenog korisnika |
+| `PUT`    | `/api/notes/{id}`    | Ažuriranje vlastite bilješke              |
+| `DELETE` | `/api/notes/{id}`    | Brisanje vlastite bilješke                |
+| `GET`    | `/api/categories`    | Dohvat kategorija                         |
+| `GET`    | `/api/admin/users`   | Admin pregled korisnika                   |
+| `GET`    | `/api/admin/notes`   | Admin pregled svih bilješki               |
+
+Zaštićene rute `/api/notes` i `/api/admin/*` zahtijevaju `Authorization: Bearer <token>`. Obični korisnik preko `/api/notes` vidi samo vlastite bilješke, dok su admin rute dostupne samo korisnicima s ulogom `admin`.
+
+Primjer tijela zahtjeva za `POST /api/auth/register`:
+
+```json
+{
+  "ime": "Novi Korisnik",
+  "email": "novi.korisnik@example.com",
+  "lozinka": "password"
+}
+```
+
+Primjer tijela zahtjeva za `POST /api/auth/login`:
+
+```json
+{
+  "email": "ana.horvat@example.com",
+  "lozinka": "password"
+}
+```
+
+Testni korisnici iz `database/seed.sql` koriste lozinku `password`.
 
 Primjer tijela zahtjeva za `POST /api/notes` i `PUT /api/notes/{id}`:
 
@@ -95,8 +125,11 @@ Dokumentirane u mapi `docs/adr/`:
 ```
 nrwa-noteapp/
 ├── config/
-│   └── database.php
+│   ├── database.php
+│   └── jwt.php
 ├── controllers/
+│   ├── AdminController.php
+│   ├── ApiAuthController.php
 │   ├── ApiCategoryController.php
 │   ├── ApiNoteController.php
 │   └── NoteController.php
@@ -110,12 +143,17 @@ nrwa-noteapp/
 │       └── er-diagram.md
 ├── models/
 │   ├── CategoryModel.php
-│   └── NoteModel.php
+│   ├── NoteModel.php
+│   └── UserModel.php
+├── middleware/
+│   └── AuthMiddleware.php
 ├── public/
 │   ├── .htaccess
 │   ├── index.php
 │   ├── notes.js
 │   └── style.css
+├── services/
+│   └── JwtService.php
 ├── views/
 │   ├── notes/
 │   │   ├── form.php
