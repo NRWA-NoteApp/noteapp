@@ -12,6 +12,7 @@ Svaki registrirani korisnik ima privatni prostor s bilješkama vidljivim samo nj
 - **Frontend:** HTML, CSS i Fetch API
 - **Baza podataka:** MySQL
 - **Autentikacija:** JWT s bcrypt hashiranjem lozinki
+- **Sigurnost:** PDO prepared statements, CSRF tokeni, output escaping i Content-Security-Policy
 - **Razvojno okruženje:** Laragon (Apache + MySQL)
 
 ## Struktura baze podataka
@@ -52,6 +53,8 @@ Zadane postavke baze su `127.0.0.1`, baza `noteapp`, korisnik `root` i prazna lo
 
 JWT tajni ključ može se promijeniti varijablom okruženja `JWT_SECRET`. Token traje 24 sata i u payloadu sadrži `user_id` i `uloga`.
 
+HTML obrasci koriste CSRF token iz sesije. Korisnički podaci koji se prikazuju u HTML-u escapaju se pomoću `htmlspecialchars`, a SQL upiti izvršavaju se kroz PDO prepared statements.
+
 ## Web rute
 
 | Ruta               | Opis                                      |
@@ -89,7 +92,8 @@ Primjer tijela zahtjeva za `POST /api/auth/register`:
 {
   "ime": "Novi Korisnik",
   "email": "novi.korisnik@example.com",
-  "lozinka": "password"
+  "lozinka": "password",
+  "csrf_token": "vrijednost_iz_html_obrasca"
 }
 ```
 
@@ -98,7 +102,8 @@ Primjer tijela zahtjeva za `POST /api/auth/login`:
 ```json
 {
   "email": "ana.horvat@example.com",
-  "lozinka": "password"
+  "lozinka": "password",
+  "csrf_token": "vrijednost_iz_html_obrasca"
 }
 ```
 
@@ -114,11 +119,14 @@ Primjer tijela zahtjeva za `POST /api/notes` i `PUT /api/notes/{id}`:
 }
 ```
 
+Za bilješke se na serveru provjerava da naslov nije prazan i da ima najviše 255 znakova, a sadržaj ne smije biti prazan.
+
 ## Arhitekturalne odluke
 
 Dokumentirane u mapi `docs/adr/`:
 
 - [`ADR-001`](docs/adr/ADR-001.md) - Odabir MySQL baze podataka
+- [`ADR-002`](docs/adr/ADR-002.md) - Sigurnosne mjere web aplikacije
 
 ## Struktura projekta
 
@@ -138,7 +146,8 @@ nrwa-noteapp/
 │   └── seed.sql
 ├── docs/
 │   ├── adr/
-│   │   └── ADR-001.md
+│   │   ├── ADR-001.md
+│   │   └── ADR-002.md
 │   └── diagrams/
 │       └── er-diagram.md
 ├── models/
@@ -153,7 +162,8 @@ nrwa-noteapp/
 │   ├── notes.js
 │   └── style.css
 ├── services/
-│   └── JwtService.php
+│   ├── JwtService.php
+│   └── Security.php
 ├── views/
 │   ├── notes/
 │   │   ├── form.php

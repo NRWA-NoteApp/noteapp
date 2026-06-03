@@ -4,6 +4,21 @@ Sve značajne promjene u ovom projektu dokumentirane su u ovoj datoteci.
 
 Format temeljen na [Keep a Changelog](https://keepachangelog.com/hr/1.0.0/).
 
+## [0.5.0] - 2026-05-30
+
+### Dodano
+
+- CSRF tokeni i serverska validacija tokena na HTML obrascima
+- Content-Security-Policy zaglavlje za HTTP odgovore
+- Serverska validacija naslova i sadržaja bilješki
+- ADR-002: sigurnosne mjere web aplikacije
+
+### Promijenjeno
+
+- SQL upiti u modelima prebačeni su na PDO prepared statements
+- Korisnički podaci u HTML predlošcima escapaju se prije ispisa
+- Spremanje korisnika provjerava da je lozinka pohranjena kao hash
+
 ## [0.4.0] - 2026-05-30
 
 ### Dodano
