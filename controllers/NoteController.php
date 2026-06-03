@@ -13,10 +13,8 @@ class NoteController
 
     public function index(): void
     {
-        $notes = $this->notes->findAll();
-
         $this->render('notes/index', [
-            'notes' => $notes,
+            'notes' => [],
         ]);
     }
 
