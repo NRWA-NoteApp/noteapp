@@ -19,6 +19,8 @@
         <section class="auth-grid" aria-label="Autentikacija">
             <form class="auth-panel" data-login-form>
                 <h2>Prijava</h2>
+                <input type="hidden" name="csrf_token" value="<?= Security::escape($csrfToken) ?>">
+
                 <label for="login-email">Email</label>
                 <input id="login-email" name="email" type="email" value="ana.horvat@example.com" required>
 
@@ -30,6 +32,8 @@
 
             <form class="auth-panel" data-register-form>
                 <h2>Registracija</h2>
+                <input type="hidden" name="csrf_token" value="<?= Security::escape($csrfToken) ?>">
+
                 <label for="register-name">Ime</label>
                 <input id="register-name" name="ime" type="text" required>
 
@@ -60,17 +64,17 @@
                 <article class="note-card">
                     <div class="note-meta">
                         <?php if (!empty($note['kategorija_naziv'])): ?>
-                            <span class="category" style="--category-color: <?= $note['kategorija_boja'] ?>;">
-                                <?= $note['kategorija_naziv'] ?>
+                            <span class="category" style="--category-color: <?= Security::escape(Security::cssColor($note['kategorija_boja'] ?? '')) ?>;">
+                                <?= Security::escape($note['kategorija_naziv']) ?>
                             </span>
                         <?php else: ?>
                             <span class="category muted">Bez kategorije</span>
                         <?php endif; ?>
-                        <span><?= $note['korisnik_ime'] ?></span>
+                        <span><?= Security::escape($note['korisnik_ime'] ?? '') ?></span>
                     </div>
-                    <h2><?= $note['naslov'] ?></h2>
-                    <p><?= strlen($note['sadrzaj']) > 140 ? substr($note['sadrzaj'], 0, 140) . '...' : $note['sadrzaj'] ?></p>
-                    <a href="/notes/<?= $note['id'] ?>">Otvori detalje</a>
+                    <h2><?= Security::escape($note['naslov'] ?? '') ?></h2>
+                    <p><?= Security::escape(strlen((string) ($note['sadrzaj'] ?? '')) > 140 ? substr((string) $note['sadrzaj'], 0, 140) . '...' : ($note['sadrzaj'] ?? '')) ?></p>
+                    <a href="/notes/<?= (int) $note['id'] ?>">Otvori detalje</a>
                 </article>
             <?php endforeach; ?>
         </section>

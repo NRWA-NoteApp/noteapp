@@ -10,7 +10,7 @@
     <main class="container narrow">
         <section class="empty-state">
             <h1>Aplikacija trenutno ne može dohvatiti podatke.</h1>
-            <p><?= $message ?></p>
+            <p><?= Security::escape($message ?? '') ?></p>
         </section>
     </main>
 </body>
