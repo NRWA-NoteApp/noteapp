@@ -22,5 +22,5 @@ fileignoreconfig:
 - filename: services/JwtService.php
   checksum: b03eca130e0567a9b43effb24a29ba0d81b662c49d2e51c80291a65408e60119
 - filename: views/notes/index.php
-  checksum: bdb5f7781c7a3ca1869eb116ffc723b9971e55d8242331608b9299b2517e0a75
+  checksum: 41a1a5150a12326930b90f1e95529256f377dbfd89a58dca98b67312446255ab
 version: "1.0"

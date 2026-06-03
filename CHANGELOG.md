@@ -4,6 +4,20 @@ Sve značajne promjene u ovom projektu dokumentirane su u ovoj datoteci.
 
 Format temeljen na [Keep a Changelog](https://keepachangelog.com/hr/1.0.0/).
 
+## [0.6.0] - 2026-05-30
+
+### Dodano
+
+- Finalna README dokumentacija s uputama za instalaciju, web rutama i svim API endpointima
+- Primjeri JSON zahtjeva i odgovora za auth, bilješke, kategorije i admin API rute
+- MVC dijagram arhitekture u `docs/diagrams/architecture.md`
+
+### Promijenjeno
+
+- `/api/categories` sada vraća kategorije prijavljenog korisnika kroz JWT provjeru
+- Forma za prijavu više nema unaprijed popunjene testne podatke
+- Početni podaci u dokumentaciji označeni su kao opcionalni za lokalnu provjeru
+
 ## [0.5.0] - 2026-05-30
 
 ### Dodano
