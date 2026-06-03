@@ -214,7 +214,7 @@ function createNoteCard(note) {
     category.textContent = note.kategorija_naziv || 'Bez kategorije';
 
     if (note.kategorija_boja) {
-        category.style.setProperty('--category-color', note.kategorija_boja);
+        category.style.setProperty('--category-color', normalizeColor(note.kategorija_boja));
     }
 
     const user = document.createElement('span');
@@ -238,6 +238,10 @@ function createNoteCard(note) {
 
 function shorten(value, maxLength) {
     return value.length > maxLength ? `${value.slice(0, maxLength)}...` : value;
+}
+
+function normalizeColor(value) {
+    return /^#[0-9a-fA-F]{6}$/.test(value) ? value : '#777777';
 }
 
 function saveAuth(token, user) {

@@ -62,7 +62,7 @@ class ApiNoteController
 
         if ($data === null) {
             $this->json([
-                'error' => 'Pošaljite ispravan JSON s poljima naslov, sadrzaj i kategorija_id.',
+                'error' => 'Pošaljite naslov do 255 znakova, neprazan sadržaj i valjan kategorija_id.',
             ], 400);
             return;
         }
@@ -107,27 +107,23 @@ class ApiNoteController
 
         if ($data === null) {
             $this->json([
-                'error' => 'Pošaljite ispravan JSON s poljima naslov, sadrzaj i kategorija_id.',
+                'error' => 'Pošaljite naslov do 255 znakova, neprazan sadržaj i valjan kategorija_id.',
             ], 400);
-            return;
-        }
-
-        if (!$this->categoryBelongsToUser($data['kategorija_id'], (int) $user['id'])) {
+        } elseif (!$this->categoryBelongsToUser($data['kategorija_id'], (int) $user['id'])) {
             $this->json([
                 'error' => 'Odabrana kategorija ne pripada prijavljenom korisniku.',
             ], 400);
-            return;
+        } else {
+            $this->notes->updateForUser($noteId, (int) $user['id'], [
+                'naslov' => $data['naslov'],
+                'sadrzaj' => $data['sadrzaj'],
+                'kategorija_id' => $data['kategorija_id'] ?? null,
+            ]);
+
+            $this->json([
+                'data' => $this->notes->findByIdForUser($noteId, (int) $user['id']),
+            ]);
         }
-
-        $this->notes->updateForUser($noteId, (int) $user['id'], [
-            'naslov' => $data['naslov'],
-            'sadrzaj' => $data['sadrzaj'],
-            'kategorija_id' => $data['kategorija_id'] ?? null,
-        ]);
-
-        $this->json([
-            'data' => $this->notes->findByIdForUser($noteId, (int) $user['id']),
-        ]);
     }
 
     public function destroy(array $params): void
@@ -175,8 +171,8 @@ class ApiNoteController
         }
 
         return [
-            'naslov' => (string) $data['naslov'],
-            'sadrzaj' => (string) $data['sadrzaj'],
+            'naslov' => trim((string) $data['naslov']),
+            'sadrzaj' => trim((string) $data['sadrzaj']),
             'kategorija_id' => $kategorijaId,
         ];
     }
@@ -189,6 +185,7 @@ class ApiNoteController
             && is_scalar($data['naslov'])
             && is_scalar($data['sadrzaj'])
             && trim((string) $data['naslov']) !== ''
+            && $this->textLength(trim((string) $data['naslov'])) <= 255
             && trim((string) $data['sadrzaj']) !== '';
     }
 
@@ -208,6 +205,11 @@ class ApiNoteController
     private function categoryBelongsToUser(?int $categoryId, int $userId): bool
     {
         return $categoryId === null || $this->categories->existsForUser($categoryId, $userId);
+    }
+
+    private function textLength(string $value): int
+    {
+        return function_exists('mb_strlen') ? mb_strlen($value, 'UTF-8') : strlen($value);
     }
 
     private function json(array $payload, int $status = 200): void
