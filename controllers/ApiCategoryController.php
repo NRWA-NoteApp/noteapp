@@ -3,16 +3,24 @@
 class ApiCategoryController
 {
     private CategoryModel $categories;
+    private AuthMiddleware $auth;
 
-    public function __construct(PDO $connection)
+    public function __construct(PDO $connection, AuthMiddleware $auth)
     {
         $this->categories = new CategoryModel($connection);
+        $this->auth = $auth;
     }
 
     public function index(): void
     {
+        $user = $this->auth->requireUser();
+
+        if ($user === null) {
+            return;
+        }
+
         $this->json([
-            'data' => $this->categories->findByUser(1),
+            'data' => $this->categories->findByUser((int) $user['id']),
         ]);
     }
 
