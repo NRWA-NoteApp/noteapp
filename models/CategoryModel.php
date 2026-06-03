@@ -21,6 +21,19 @@ class CategoryModel
         return $this->connection->query($sql)->fetchAll();
     }
 
+    public function existsForUser(int $id, int $userId): bool
+    {
+        $sql = "
+            SELECT id
+            FROM kategorije
+            WHERE id = {$id}
+                AND korisnik_id = {$userId}
+            LIMIT 1
+        ";
+
+        return (bool) $this->connection->query($sql)->fetch();
+    }
+
     public function create(array $data): int
     {
         $naziv = $this->connection->quote($data['naziv']);
