@@ -11,49 +11,57 @@ class CategoryModel
 
     public function findByUser(int $userId): array
     {
-        $sql = "
+        $statement = $this->connection->prepare("
             SELECT *
             FROM kategorije
-            WHERE korisnik_id = {$userId}
+            WHERE korisnik_id = :user_id
             ORDER BY naziv ASC
-        ";
+        ");
+        $statement->execute([
+            'user_id' => $userId,
+        ]);
 
-        return $this->connection->query($sql)->fetchAll();
+        return $statement->fetchAll();
     }
 
     public function existsForUser(int $id, int $userId): bool
     {
-        $sql = "
+        $statement = $this->connection->prepare("
             SELECT id
             FROM kategorije
-            WHERE id = {$id}
-                AND korisnik_id = {$userId}
+            WHERE id = :id
+                AND korisnik_id = :user_id
             LIMIT 1
-        ";
+        ");
+        $statement->execute([
+            'id' => $id,
+            'user_id' => $userId,
+        ]);
 
-        return (bool) $this->connection->query($sql)->fetch();
+        return (bool) $statement->fetch();
     }
 
     public function create(array $data): int
     {
-        $naziv = $this->connection->quote($data['naziv']);
-        $boja = $this->connection->quote($data['boja']);
-        $korisnikId = (int) $data['korisnik_id'];
-
-        $sql = "
+        $statement = $this->connection->prepare("
             INSERT INTO kategorije (naziv, boja, korisnik_id)
-            VALUES ({$naziv}, {$boja}, {$korisnikId})
-        ";
-
-        $this->connection->exec($sql);
+            VALUES (:naziv, :boja, :korisnik_id)
+        ");
+        $statement->execute([
+            'naziv' => $data['naziv'],
+            'boja' => $data['boja'],
+            'korisnik_id' => (int) $data['korisnik_id'],
+        ]);
 
         return (int) $this->connection->lastInsertId();
     }
 
     public function delete(int $id): bool
     {
-        $sql = "DELETE FROM kategorije WHERE id = {$id}";
+        $statement = $this->connection->prepare("DELETE FROM kategorije WHERE id = :id");
 
-        return $this->connection->exec($sql) !== false;
+        return $statement->execute([
+            'id' => $id,
+        ]);
     }
 }

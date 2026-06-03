@@ -11,36 +11,41 @@ class UserModel
 
     public function findByEmail(string $email): ?array
     {
-        $email = $this->connection->quote($email);
-        $sql = "
+        $statement = $this->connection->prepare("
             SELECT *
             FROM korisnici
-            WHERE email = {$email}
+            WHERE email = :email
             LIMIT 1
-        ";
+        ");
+        $statement->execute([
+            'email' => $email,
+        ]);
 
-        $user = $this->connection->query($sql)->fetch();
+        $user = $statement->fetch();
 
         return $user ?: null;
     }
 
     public function findById(int $id): ?array
     {
-        $sql = "
+        $statement = $this->connection->prepare("
             SELECT id, ime, email, uloga, datum_registracije
             FROM korisnici
-            WHERE id = {$id}
+            WHERE id = :id
             LIMIT 1
-        ";
+        ");
+        $statement->execute([
+            'id' => $id,
+        ]);
 
-        $user = $this->connection->query($sql)->fetch();
+        $user = $statement->fetch();
 
         return $user ?: null;
     }
 
     public function findAllWithStats(): array
     {
-        $sql = "
+        $statement = $this->connection->prepare("
             SELECT
                 u.id,
                 u.ime,
@@ -54,24 +59,31 @@ class UserModel
             LEFT JOIN kategorije k ON k.korisnik_id = u.id
             GROUP BY u.id, u.ime, u.email, u.uloga, u.datum_registracije
             ORDER BY u.datum_registracije DESC
-        ";
+        ");
+        $statement->execute();
 
-        return $this->connection->query($sql)->fetchAll();
+        return $statement->fetchAll();
     }
 
     public function create(array $data): int
     {
-        $ime = $this->connection->quote($data['ime']);
-        $email = $this->connection->quote($data['email']);
-        $lozinkaHash = $this->connection->quote($data['lozinka_hash']);
-        $uloga = $this->connection->quote($data['uloga'] ?? 'user');
+        $lozinkaHash = (string) $data['lozinka_hash'];
+        $passwordInfo = password_get_info($lozinkaHash);
 
-        $sql = "
+        if (($passwordInfo['algoName'] ?? 'unknown') === 'unknown') {
+            throw new InvalidArgumentException('Lozinka mora biti pohranjena kao hash.');
+        }
+
+        $statement = $this->connection->prepare("
             INSERT INTO korisnici (ime, email, lozinka_hash, uloga)
-            VALUES ({$ime}, {$email}, {$lozinkaHash}, {$uloga})
-        ";
-
-        $this->connection->exec($sql);
+            VALUES (:ime, :email, :lozinka_hash, :uloga)
+        ");
+        $statement->execute([
+            'ime' => $data['ime'],
+            'email' => $data['email'],
+            'lozinka_hash' => $lozinkaHash,
+            'uloga' => $data['uloga'] ?? 'user',
+        ]);
 
         return (int) $this->connection->lastInsertId();
     }

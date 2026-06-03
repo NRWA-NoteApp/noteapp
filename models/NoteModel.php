@@ -11,7 +11,7 @@ class NoteModel
 
     public function findAll(): array
     {
-        $sql = "
+        $statement = $this->connection->prepare("
             SELECT
                 b.*,
                 k.naziv AS kategorija_naziv,
@@ -21,14 +21,16 @@ class NoteModel
             LEFT JOIN kategorije k ON b.kategorija_id = k.id
             INNER JOIN korisnici u ON b.korisnik_id = u.id
             ORDER BY b.datum_izmjene DESC
-        ";
+        ");
 
-        return $this->connection->query($sql)->fetchAll();
+        $statement->execute();
+
+        return $statement->fetchAll();
     }
 
     public function findById(int $id): ?array
     {
-        $sql = "
+        $statement = $this->connection->prepare("
             SELECT
                 b.*,
                 k.naziv AS kategorija_naziv,
@@ -37,18 +39,21 @@ class NoteModel
             FROM biljeske b
             LEFT JOIN kategorije k ON b.kategorija_id = k.id
             INNER JOIN korisnici u ON b.korisnik_id = u.id
-            WHERE b.id = {$id}
+            WHERE b.id = :id
             LIMIT 1
-        ";
+        ");
+        $statement->execute([
+            'id' => $id,
+        ]);
 
-        $note = $this->connection->query($sql)->fetch();
+        $note = $statement->fetch();
 
         return $note ?: null;
     }
 
     public function findByUser(int $userId): array
     {
-        $sql = "
+        $statement = $this->connection->prepare("
             SELECT
                 b.*,
                 k.naziv AS kategorija_naziv,
@@ -57,16 +62,19 @@ class NoteModel
             FROM biljeske b
             LEFT JOIN kategorije k ON b.kategorija_id = k.id
             INNER JOIN korisnici u ON b.korisnik_id = u.id
-            WHERE b.korisnik_id = {$userId}
+            WHERE b.korisnik_id = :user_id
             ORDER BY b.datum_izmjene DESC
-        ";
+        ");
+        $statement->execute([
+            'user_id' => $userId,
+        ]);
 
-        return $this->connection->query($sql)->fetchAll();
+        return $statement->fetchAll();
     }
 
     public function findByIdForUser(int $id, int $userId): ?array
     {
-        $sql = "
+        $statement = $this->connection->prepare("
             SELECT
                 b.*,
                 k.naziv AS kategorija_naziv,
@@ -75,79 +83,94 @@ class NoteModel
             FROM biljeske b
             LEFT JOIN kategorije k ON b.kategorija_id = k.id
             INNER JOIN korisnici u ON b.korisnik_id = u.id
-            WHERE b.id = {$id}
-                AND b.korisnik_id = {$userId}
+            WHERE b.id = :id
+                AND b.korisnik_id = :user_id
             LIMIT 1
-        ";
+        ");
+        $statement->execute([
+            'id' => $id,
+            'user_id' => $userId,
+        ]);
 
-        $note = $this->connection->query($sql)->fetch();
+        $note = $statement->fetch();
 
         return $note ?: null;
     }
 
     public function create(array $data): int
     {
-        $naslov = $this->connection->quote($data['naslov']);
-        $sadrzaj = $this->connection->quote($data['sadrzaj']);
-        $korisnikId = (int) $data['korisnik_id'];
-        $kategorijaId = empty($data['kategorija_id']) ? 'NULL' : (int) $data['kategorija_id'];
-
-        $sql = "
+        $statement = $this->connection->prepare("
             INSERT INTO biljeske (naslov, sadrzaj, korisnik_id, kategorija_id)
-            VALUES ({$naslov}, {$sadrzaj}, {$korisnikId}, {$kategorijaId})
-        ";
-
-        $this->connection->exec($sql);
+            VALUES (:naslov, :sadrzaj, :korisnik_id, :kategorija_id)
+        ");
+        $statement->execute([
+            'naslov' => $data['naslov'],
+            'sadrzaj' => $data['sadrzaj'],
+            'korisnik_id' => (int) $data['korisnik_id'],
+            'kategorija_id' => empty($data['kategorija_id']) ? null : (int) $data['kategorija_id'],
+        ]);
 
         return (int) $this->connection->lastInsertId();
     }
 
     public function update(int $id, array $data): bool
     {
-        $naslov = $this->connection->quote($data['naslov']);
-        $sadrzaj = $this->connection->quote($data['sadrzaj']);
-        $kategorijaId = empty($data['kategorija_id']) ? 'NULL' : (int) $data['kategorija_id'];
-
-        $sql = "
+        $statement = $this->connection->prepare("
             UPDATE biljeske
-            SET naslov = {$naslov},
-                sadrzaj = {$sadrzaj},
-                kategorija_id = {$kategorijaId}
-            WHERE id = {$id}
-        ";
+            SET naslov = :naslov,
+                sadrzaj = :sadrzaj,
+                kategorija_id = :kategorija_id
+            WHERE id = :id
+        ");
 
-        return $this->connection->exec($sql) !== false;
+        return $statement->execute([
+            'naslov' => $data['naslov'],
+            'sadrzaj' => $data['sadrzaj'],
+            'kategorija_id' => empty($data['kategorija_id']) ? null : (int) $data['kategorija_id'],
+            'id' => $id,
+        ]);
     }
 
     public function updateForUser(int $id, int $userId, array $data): bool
     {
-        $naslov = $this->connection->quote($data['naslov']);
-        $sadrzaj = $this->connection->quote($data['sadrzaj']);
-        $kategorijaId = empty($data['kategorija_id']) ? 'NULL' : (int) $data['kategorija_id'];
-
-        $sql = "
+        $statement = $this->connection->prepare("
             UPDATE biljeske
-            SET naslov = {$naslov},
-                sadrzaj = {$sadrzaj},
-                kategorija_id = {$kategorijaId}
-            WHERE id = {$id}
-                AND korisnik_id = {$userId}
-        ";
+            SET naslov = :naslov,
+                sadrzaj = :sadrzaj,
+                kategorija_id = :kategorija_id
+            WHERE id = :id
+                AND korisnik_id = :user_id
+        ");
 
-        return $this->connection->exec($sql) !== false;
+        return $statement->execute([
+            'naslov' => $data['naslov'],
+            'sadrzaj' => $data['sadrzaj'],
+            'kategorija_id' => empty($data['kategorija_id']) ? null : (int) $data['kategorija_id'],
+            'id' => $id,
+            'user_id' => $userId,
+        ]);
     }
 
     public function delete(int $id): bool
     {
-        $sql = "DELETE FROM biljeske WHERE id = {$id}";
+        $statement = $this->connection->prepare("DELETE FROM biljeske WHERE id = :id");
 
-        return $this->connection->exec($sql) !== false;
+        return $statement->execute([
+            'id' => $id,
+        ]);
     }
 
     public function deleteForUser(int $id, int $userId): bool
     {
-        $sql = "DELETE FROM biljeske WHERE id = {$id} AND korisnik_id = {$userId}";
+        $statement = $this->connection->prepare("
+            DELETE FROM biljeske
+            WHERE id = :id
+                AND korisnik_id = :user_id
+        ");
 
-        return $this->connection->exec($sql) !== false;
+        return $statement->execute([
+            'id' => $id,
+            'user_id' => $userId,
+        ]);
     }
 }
