@@ -21,7 +21,7 @@ try {
     $jwtConfig = require_once __DIR__ . '/../config/jwt.php';
     $authMiddleware = new AuthMiddleware($connection, $jwtConfig);
 
-    $noteController = new NoteController($connection);
+    $noteController = new NoteController($connection, $authMiddleware);
     $apiNoteController = new ApiNoteController($connection, $authMiddleware);
     $apiCategoryController = new ApiCategoryController($connection, $authMiddleware);
     $apiAuthController = new ApiAuthController($connection, $jwtConfig);
