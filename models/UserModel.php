@@ -11,78 +11,114 @@ class UserModel
 
     public function findByEmail(string $email): ?array
     {
-        $statement = $this->connection->prepare("
+        $sql = "
             SELECT *
             FROM korisnici
             WHERE email = :email
             LIMIT 1
-        ");
-        $statement->execute([
-            'email' => $email,
+        ";
+
+        $stmt = $this->connection->prepare($sql);
+
+        $stmt->execute([
+            'email' => $email
         ]);
 
-        $user = $statement->fetch();
+        $result = $stmt->fetch();
 
-        return $user ?: null;
+        return $result !== false ? $result : null;
     }
 
     public function findById(int $id): ?array
     {
-        $statement = $this->connection->prepare("
-            SELECT id, ime, email, uloga, datum_registracije
+        $sql = "
+            SELECT
+                id,
+                ime,
+                email,
+                uloga,
+                datum_registracije
             FROM korisnici
             WHERE id = :id
             LIMIT 1
-        ");
-        $statement->execute([
-            'id' => $id,
+        ";
+
+        $stmt = $this->connection->prepare($sql);
+
+        $stmt->execute([
+            'id' => $id
         ]);
 
-        $user = $statement->fetch();
+        $result = $stmt->fetch();
 
-        return $user ?: null;
+        return $result !== false ? $result : null;
     }
 
     public function findAllWithStats(): array
     {
-        $statement = $this->connection->prepare("
+        $query = "
             SELECT
-                u.id,
-                u.ime,
-                u.email,
-                u.uloga,
-                u.datum_registracije,
+                k.id,
+                k.ime,
+                k.email,
+                k.uloga,
+                k.datum_registracije,
                 COUNT(DISTINCT b.id) AS broj_biljeski,
-                COUNT(DISTINCT k.id) AS broj_kategorija
-            FROM korisnici u
-            LEFT JOIN biljeske b ON b.korisnik_id = u.id
-            LEFT JOIN kategorije k ON k.korisnik_id = u.id
-            GROUP BY u.id, u.ime, u.email, u.uloga, u.datum_registracije
-            ORDER BY u.datum_registracije DESC
-        ");
-        $statement->execute();
+                COUNT(DISTINCT c.id) AS broj_kategorija
+            FROM korisnici k
+            LEFT JOIN biljeske b
+                ON b.korisnik_id = k.id
+            LEFT JOIN kategorije c
+                ON c.korisnik_id = k.id
+            GROUP BY
+                k.id,
+                k.ime,
+                k.email,
+                k.uloga,
+                k.datum_registracije
+            ORDER BY k.datum_registracije DESC
+        ";
 
-        return $statement->fetchAll();
+        $stmt = $this->connection->prepare($query);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
     }
 
     public function create(array $data): int
     {
-        $lozinkaHash = (string) $data['lozinka_hash'];
-        $passwordInfo = password_get_info($lozinkaHash);
+        $hash = (string) $data['lozinka_hash'];
 
-        if (($passwordInfo['algoName'] ?? 'unknown') === 'unknown') {
-            throw new InvalidArgumentException('Lozinka mora biti pohranjena kao hash.');
+        $hashInfo = password_get_info($hash);
+
+        if (($hashInfo['algoName'] ?? 'unknown') === 'unknown') {
+            throw new InvalidArgumentException(
+                'Lozinka mora biti pohranjena kao hash.'
+            );
         }
 
-        $statement = $this->connection->prepare("
-            INSERT INTO korisnici (ime, email, lozinka_hash, uloga)
-            VALUES (:ime, :email, :lozinka_hash, :uloga)
-        ");
-        $statement->execute([
+        $sql = "
+            INSERT INTO korisnici (
+                ime,
+                email,
+                lozinka_hash,
+                uloga
+            )
+            VALUES (
+                :ime,
+                :email,
+                :lozinka_hash,
+                :uloga
+            )
+        ";
+
+        $stmt = $this->connection->prepare($sql);
+
+        $stmt->execute([
             'ime' => $data['ime'],
             'email' => $data['email'],
-            'lozinka_hash' => $lozinkaHash,
-            'uloga' => $data['uloga'] ?? 'user',
+            'lozinka_hash' => $hash,
+            'uloga' => $data['uloga'] ?? 'user'
         ]);
 
         return (int) $this->connection->lastInsertId();
