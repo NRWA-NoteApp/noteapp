@@ -11,46 +11,63 @@ class CategoryModel
 
     public function findByUser(int $userId): array
     {
-        $statement = $this->connection->prepare("
+        $sql = "
             SELECT *
             FROM kategorije
-            WHERE korisnik_id = :user_id
+            WHERE korisnik_id = :userId
             ORDER BY naziv ASC
-        ");
-        $statement->execute([
-            'user_id' => $userId,
+        ";
+
+        $stmt = $this->connection->prepare($sql);
+
+        $stmt->execute([
+            'userId' => $userId
         ]);
 
-        return $statement->fetchAll();
+        return $stmt->fetchAll();
     }
 
     public function existsForUser(int $id, int $userId): bool
     {
-        $statement = $this->connection->prepare("
+        $query = "
             SELECT id
             FROM kategorije
             WHERE id = :id
-                AND korisnik_id = :user_id
+                AND korisnik_id = :userId
             LIMIT 1
-        ");
-        $statement->execute([
+        ";
+
+        $stmt = $this->connection->prepare($query);
+
+        $stmt->execute([
             'id' => $id,
-            'user_id' => $userId,
+            'userId' => $userId
         ]);
 
-        return (bool) $statement->fetch();
+        return $stmt->fetch() !== false;
     }
 
     public function create(array $data): int
     {
-        $statement = $this->connection->prepare("
-            INSERT INTO kategorije (naziv, boja, korisnik_id)
-            VALUES (:naziv, :boja, :korisnik_id)
-        ");
-        $statement->execute([
+        $sql = "
+            INSERT INTO kategorije (
+                naziv,
+                boja,
+                korisnik_id
+            )
+            VALUES (
+                :naziv,
+                :boja,
+                :korisnik_id
+            )
+        ";
+
+        $stmt = $this->connection->prepare($sql);
+
+        $stmt->execute([
             'naziv' => $data['naziv'],
             'boja' => $data['boja'],
-            'korisnik_id' => (int) $data['korisnik_id'],
+            'korisnik_id' => (int) $data['korisnik_id']
         ]);
 
         return (int) $this->connection->lastInsertId();
@@ -58,10 +75,15 @@ class CategoryModel
 
     public function delete(int $id): bool
     {
-        $statement = $this->connection->prepare("DELETE FROM kategorije WHERE id = :id");
+        $sql = "
+            DELETE FROM kategorije
+            WHERE id = :id
+        ";
 
-        return $statement->execute([
-            'id' => $id,
+        $stmt = $this->connection->prepare($sql);
+
+        return $stmt->execute([
+            'id' => $id
         ]);
     }
 }
