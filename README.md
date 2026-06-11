@@ -27,27 +27,32 @@ Svaki registrirani korisnik ima privatni prostor s bilješkama vidljivim samo nj
 
 SQL skripta za kreiranje tablica nalazi se u [`database/schema.sql`](database/schema.sql), opcionalni početni podaci za lokalnu provjeru u [`database/seed.sql`](database/seed.sql), ER dijagram u [`docs/diagrams/er-diagram.md`](docs/diagrams/er-diagram.md), a MVC dijagram arhitekture u [`docs/diagrams/architecture.md`](docs/diagrams/architecture.md).
 
-## Instalacija i pokretanje
+## Instalacija i pokretanje (Laragon)
 
 ```bash
 # 1. Klonirati repozitorij
 git clone https://github.com/mapokapo/nrwa-noteapp.git
-cd nrwa-noteapp
 
-# 2. Kreirati bazu podataka (u MySQL klijentu ili phpMyAdmin)
+# 2. Postaviti repozitorij kao root folder Laragon servera - kliknuti na dugme Root na Laragonu te prekopirati sve podatke iz ovog repozitorija u dobiveni folder
+# Zatim, otici u Laragon postavke, i postaviti `public/` folder kao root (primjer putanje na Windowsu: C:\laragon\www\public)
+
+# 3. Pokrenuti MySQL u Laragonu
+
+# 4. Kreirati bazu podataka (u Laragonu izaberete "Terminal", zatim pisete sljedeće komande)
+mysql -u root
 CREATE DATABASE noteapp CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+exit
 
-# 3. Pokrenuti SQL skriptu
-mysql -u root -p noteapp < database/schema.sql
+# 5. Pokrenuti SQL skriptu
+mysql -u root -D noteapp < ../database/schema.sql
 
-# 4. Opcionalno uvesti početne podatke za lokalnu provjeru
-mysql -u root -p noteapp < database/seed.sql
+# 6. Opcionalno uvesti početne podatke za lokalnu provjeru
+mysql -u root -D noteapp < ../database/seed.sql
 
-# 5. Pokrenuti aplikaciju ugrađenim PHP poslužiteljem
-php -S 127.0.0.1:8000 -t public public/index.php
+# 5. Pokrenuti aplikaciju klikom na dugme "Start All" u Laragonu
 ```
 
-Nakon pokretanja aplikacija je dostupna na `http://127.0.0.1:8000`. U Laragon okruženju treba pokrenuti Apache i MySQL, kreirati bazu `noteapp`, uvesti `database/schema.sql` i usmjeriti web poslužitelj na mapu `public`.
+Nakon pokretanja aplikacija je dostupna na `http://localhost`. U Laragon okruženju treba pokrenuti Apache i MySQL, kreirati bazu `noteapp`, uvesti `database/schema.sql` i usmjeriti web poslužitelj na mapu `public`.
 
 Zadane postavke baze su `127.0.0.1`, baza `noteapp`, korisnik `root` i prazna lozinka. Mogu se promijeniti varijablama okruženja `DB_HOST`, `DB_DATABASE`, `DB_USERNAME` i `DB_PASSWORD`.
 
