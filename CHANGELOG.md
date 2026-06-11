@@ -4,6 +4,15 @@ Sve značajne promjene u ovom projektu dokumentirane su u ovoj datoteci.
 
 Format temeljen na [Keep a Changelog](https://keepachangelog.com/hr/1.0.0/).
 
+## [0.6.1] - 2026-06-11
+
+### Promijenjeno
+
+* Refaktorirani `NoteModel`, `UserModel` i `CategoryModel`
+* Smanjeno dupliciranje koda u modelima i poboljšana organizacija SQL upita
+* Standardizirani nazivi varijabli i formatiranje koda kroz modelski sloj
+* Poboljšana čitljivost i održivost izvornog koda bez promjene funkcionalnosti aplikacije
+
 ## [0.6.0] - 2026-05-30
 
 ### Dodano
