@@ -6,6 +6,19 @@ Web aplikacija za stvaranje, uređivanje i organiziranje osobnih bilješki po ka
 
 Svaki registrirani korisnik ima privatni prostor s bilješkama vidljivim samo njemu. Administrator ima pregled nad svim korisnicima i sadržajem sustava.
 
+## Screenshots
+
+Mapa `screenshots/` služi samo za dokumentaciju i ne ulazi u Laragon web root, koji i dalje treba pokazivati na `public/`.
+
+| Prikaz | Screenshot |
+| ------ | ---------- |
+| Gostujuća početna stranica | ![Gostujuća početna stranica](screenshots/guest.png) |
+| Pregled bilješki | ![Pregled bilješki](screenshots/notes.png) |
+| Prikaz bilješke | ![Prikaz bilješke](screenshots/view.png) |
+| Uređivanje bilješke | ![Uređivanje bilješke](screenshots/edit.png) |
+| Kreiranje bilješke | ![Kreiranje bilješke](screenshots/create.png) |
+| Pregled ruta | ![Pregled ruta](screenshots/routes.png) |
+
 ## Tehnologije
 
 - **Backend:** PHP bez okvira, uz PDO MySQL ekstenziju
@@ -35,6 +48,7 @@ git clone https://github.com/mapokapo/nrwa-noteapp.git
 
 # 2. Postaviti repozitorij kao root folder Laragon servera - kliknuti na dugme Root na Laragonu te prekopirati sve podatke iz ovog repozitorija u dobiveni folder
 # Zatim, otici u Laragon postavke, i postaviti `public/` folder kao root (primjer putanje na Windowsu: C:\laragon\www\public)
+# Mapa `screenshots/` ostaje izvan web roota i služi samo za README dokumentaciju.
 
 # 3. Pokrenuti MySQL u Laragonu
 
